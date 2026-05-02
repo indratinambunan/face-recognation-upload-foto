@@ -18,7 +18,6 @@ Aplikasi berbasis Streamlit untuk melakukan face recognition menggunakan dataset
 
 ```bash
 git clone https://github.com/indratinambunan/face-recognation-upload-foto.git
-cd face-recognation-upload-foto
 ```
 
 ```bash
