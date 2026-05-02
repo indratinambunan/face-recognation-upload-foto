@@ -11,5 +11,7 @@ tf-keras
 tensorflow
 
 # Untuk run app :
-1. Pilih app.py dan jalankan diterminal dengan cara : streamlit run app.py
-2. Lalu tampilan app akan muncul dalam web browser dan dapat digunakan sesuai menu yang tersedia.
+1. clone repository.
+2. Download library yang dibutuhkan.
+3. Pilih app.py dan jalankan diterminal dengan cara : streamlit run app.py
+4. Lalu tampilan app akan muncul dalam web browser dan dapat digunakan sesuai menu yang tersedia.
