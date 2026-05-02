@@ -24,7 +24,7 @@ cd face-recognation-upload-foto
 2. Install library yang dibutuhkan:
 
 ```bash
-pip install streamlit opencv-python-headless numpy pillow deepface tf-keras tensorflow
+python -m pip install streamlit opencv-python-headless numpy pillow deepface tf-keras tensorflow
 ```
 
 3. Jalankan aplikasi:
