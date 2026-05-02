@@ -21,6 +21,10 @@ git clone https://github.com/indratinambunan/face-recognation-upload-foto.git
 cd face-recognation-upload-foto
 ```
 
+```bash
+cd face-recognation-upload-foto
+```
+
 2. Install library yang dibutuhkan:
 
 ```bash
