@@ -30,7 +30,7 @@ python -m pip install streamlit opencv-python-headless numpy pillow deepface tf-
 3. Jalankan aplikasi:
 
 ```bash
-python -m streamlit run app.py
+python -m streamlit run face-recognation-upload-foto/app.py
 ```
 
 4. Aplikasi akan terbuka otomatis di browser dan siap digunakan.
