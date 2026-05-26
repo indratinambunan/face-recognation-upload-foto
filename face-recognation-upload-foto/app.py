@@ -4,6 +4,7 @@ import numpy as np
 import os
 from PIL import Image
 from deepface import DeepFace
+from sklearn.cluster import KMeans # <--- TAMBAHAN: Import KMeans
 
 st.set_page_config(layout="wide")
 st.title("🧠 Aplikasi Pemrosesan Citra Wajah")
@@ -25,7 +26,8 @@ if menu == "Image Processing":
         "Technique",
         "Convolution",
         "Morphology",
-        "Feature Detection & Matching"
+        "Feature Detection & Matching",
+        "Unsupervised Learning (K-Means)" # <--- TAMBAHAN: Menu baru untuk K-Means
     ])
 
 # =========================
@@ -156,8 +158,6 @@ elif menu == "Image Processing":
                 st.image(opening, caption="Opening")
                 st.image(closing, caption="Closing")
 
-           
-
         # =========================
         # FACE RECOGNITION
         # =========================
@@ -184,3 +184,28 @@ elif menu == "Image Processing":
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
+        
+        # =========================
+        # UNSUPERVISED LEARNING (K-MEANS) <--- TAMBAHAN: Logika K-Means
+        # =========================
+        elif sub_menu == "Unsupervised Learning (K-Means)":
+            st.subheader("🎨 Unsupervised Learning (K-Means Clustering)")
+            st.info("Mengelompokkan warna piksel menggunakan K-Means untuk melakukan segmentasi (memisahkan objek dari latar belakang berdasarkan warna).")
+            
+            # Slider interaktif di Streamlit untuk menentukan nilai K (jumlah kelompok)
+            k = st.slider("Pilih jumlah kelompok warna (K)", min_value=2, max_value=10, value=2)
+            
+            # Mengubah bentuk gambar menjadi daftar piksel
+            pixel_values = img.reshape((-1, 3))
+            pixel_values = np.float32(pixel_values)
+            
+            # Menerapkan algoritma K-Means
+            kmeans = KMeans(n_clusters=k, random_state=42)
+            labels = kmeans.fit_predict(pixel_values)
+            centers = np.uint8(kmeans.cluster_centers_)
+            
+            # Rekonstruksi gambar hasil klastering
+            segmented_image = centers[labels.flatten()]
+            segmented_image = segmented_image.reshape(img.shape)
+            
+            st.image(segmented_image, caption=f"Hasil Segmentasi K-Means (K={k})", width=400)
