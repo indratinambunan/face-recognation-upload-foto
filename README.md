@@ -1,78 +1,36 @@
 # Face Recognition Upload Foto
 
-Aplikasi berbasis **Streamlit** untuk pengolahan citra digital dan pengenalan wajah (*Face Recognition*) menggunakan teknik **Computer Vision** dan **Deep Learning**.
+Aplikasi berbasis **Streamlit** untuk implementasi **Computer Vision** dan **Deep Learning** dalam pengolahan citra digital serta pengenalan wajah (*Face Recognition*).
 
-Project ini dibuat sebagai implementasi tugas mata kuliah **Computer Vision**, yang mencakup preprocessing citra, operasi konvolusi, morfologi, segmentasi menggunakan **K-Means**, serta pengenalan wajah menggunakan arsitektur **MobileNetV2 (Transfer Learning)**.
+Project ini dibuat sebagai tugas mata kuliah **Computer Vision** yang mencakup teknik pengolahan citra, segmentasi, dan pengenalan wajah menggunakan **MobileNetV2 (Transfer Learning)**.
 
 ---
 
-## ✨ Fitur Aplikasi
+## ✨ Fitur Program
 
 ### 📌 Tugas 1 — Image Processing
-
-Modul pengolahan citra digital dasar yang terdiri dari:
-
-* Register dataset wajah
-* Data Input (informasi gambar)
-* Technique (Preprocessing)
-
-  * Grayscale
-  * Histogram Equalization
-  * Gaussian Blur
-  * Median Blur
-  * Resize
-* Convolution
-
-  * Sharpen Filter
-  * Sobel X
-  * Sobel Y
-* Morphology
-
-  * Thresholding
-  * Erosion
-  * Dilation
-  * Opening
-  * Closing
-* Unsupervised Learning
-
-  * K-Means Clustering (segmentasi warna)
-
----
+- Register dataset wajah  
+- Grayscale  
+- Histogram Equalization  
+- Gaussian Blur  
+- Median Blur  
+- Resize  
+- Convolution (Sharpen, Sobel X, Sobel Y)  
+- Morphology (Thresholding, Erosion, Dilation, Opening, Closing)  
+- K-Means Clustering  
 
 ### 📌 Tugas 2 — Deep Learning Face Recognition
-
-Implementasi pengenalan wajah berbasis Deep Learning:
-
-* Dataset wajah multi-kelas
-* Training model CNN menggunakan MobileNetV2
-* Transfer Learning (Pretrained ImageNet)
-* Fine Tuning model
-* Face Prediction
-* Confidence Score Prediction
-* Visualisasi probabilitas hasil prediksi
+- Dataset multi-kelas wajah  
+- Training model CNN  
+- Transfer Learning menggunakan MobileNetV2  
+- Fine Tuning model  
+- Face Prediction  
+- Confidence Score Prediction  
+- Visualisasi probabilitas hasil prediksi  
 
 ---
 
-## 📦 Library yang Dibutuhkan
-
-Install dependencies berikut:
-
-* streamlit
-* opencv-python
-* numpy
-* pillow
-* tensorflow
-* scikit-learn
-
-Install dengan command:
-
-```bash
-python -m pip install streamlit opencv-python numpy pillow tensorflow scikit-learn
-```
-
----
-
-## 🚀 Cara Menjalankan Program
+## 📦 Instalasi dan Menjalankan Program
 
 Clone repository:
 
@@ -86,32 +44,22 @@ Masuk ke folder project:
 cd face-recognation-upload-foto
 ```
 
-Install dependencies:
+Install semua library yang dibutuhkan:
 
 ```bash
 python -m pip install streamlit opencv-python numpy pillow tensorflow scikit-learn
 ```
 
-Menjalankan program tugas 1:
+Menjalankan program:
+
+Untuk **Tugas 1 (Image Processing)**
 
 ```bash
 python -m streamlit run app_tugas1.py
 ```
 
-Menjalankan program tugas 2:
+Untuk **Tugas 2 (Deep Learning Face Recognition)**
 
 ```bash
 python -m streamlit run app_tugas2.py
 ```
-
----
-
-## 🧠 Teknologi yang Digunakan
-
-* Python 3
-* Streamlit
-* OpenCV
-* NumPy
-* TensorFlow / Keras
-* MobileNetV2
-* Scikit-Learn (K-Means Clustering)
