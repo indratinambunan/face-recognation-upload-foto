@@ -12,6 +12,8 @@ from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import ReduceLROnPlateau
 
 # ==========================================
 # CONFIGURATION
@@ -56,6 +58,30 @@ def _get_persons(base_path):
     ]
 
 
+def detect_face(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+    face_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades +
+        "haarcascade_frontalface_default.xml"
+    )
+
+    faces = face_cascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5
+    )
+
+    if len(faces) == 0:
+        return None
+
+    x, y, w, h = faces[0]
+
+    face = img[y:y+h, x:x+w]
+
+    return face
+
+
 # ==========================================
 # SIDEBAR MENU
 # ==========================================
@@ -70,7 +96,7 @@ if menu == "Image Processing":
         "Technique",
         "Convolution",
         "Morphology",
-        "Feature Detection & Matching (Deep Learning)",
+        "Face Recognition (Deep Learning CNN)",
         "Unsupervised Learning (K-Means)"
     ])
 
@@ -221,15 +247,15 @@ elif menu == "Image Processing":
         # ==========================================
         # DEEP LEARNING TRAINING & PREDICTION
         # ==========================================
-        elif sub_menu == "Feature Detection & Matching (Deep Learning)":
-            st.subheader("🤖 Face Recognition dengan Deep Learning (MobileNetV2)")
+        elif sub_menu == "Face Recognition (Deep Learning CNN)":
+            st.subheader("🤖 Face Recognition dengan Deep Learning (CNN)")
 
             st.markdown("""
-            **Cara Kerja:**
-            1. Dataset wajah yang sudah diregister digunakan untuk melatih model CNN (MobileNetV2)
-            2. MobileNetV2 adalah arsitektur deep learning yang sudah pretrained di ImageNet
-            3. Model di-fine-tune khusus untuk mengenali wajah di dataset kamu (Transfer Learning)
-            4. Prediksi dilakukan menggunakan model yang sudah dilatih
+            **Teori CNN (Convolutional Neural Network):**
+            - **MobileNetV2 Pretrained**: Model menggunakan arsitektur MobileNetV2 yang telah dilatih pada dataset ImageNet (jutaan gambar). Ini disebut *Transfer Learning* — memanfaatkan pengetahuan dari tugas sebelumnya untuk mempercepat pelatihan pada dataset wajah yang lebih kecil.
+            - **Ekstraksi Fitur dengan Convolution Layer**: CNN bekerja dengan menggeser filter (kernel) kecil ke seluruh gambar untuk mendeteksi pola seperti tepi, sudut, tekstur, hingga pola wajah yang lebih kompleks. Semakin dalam layer, fitur yang diekstrak semakin abstrak dan spesifik terhadap wajah.
+            - **Klasifikasi dengan Dense Layer**: Setelah fitur diekstrak oleh convolution layer, hasilnya diratakan dan diproses oleh *Dense Layer* (fully connected layer) yang bertugas memetakan fitur-fitur tersebut ke kelas identitas wajah tertentu menggunakan aktivasi softmax.
+            - **Face Recognition Pipeline**: Input gambar → preprocessing (resize, normalisasi) → ekstraksi fitur oleh MobileNetV2 → klasifikasi oleh Dense Layer → output probabilitas setiap identitas.
             """)
 
             # ==========================================
@@ -254,7 +280,7 @@ elif menu == "Image Processing":
                 with col_train1:
                     epochs = st.slider(
                         "Jumlah Epoch",
-                        min_value=5, max_value=50, value=10
+                        min_value=5, max_value=50, value=15
                     )
                 with col_train2:
                     img_size = st.selectbox(
@@ -276,12 +302,16 @@ elif menu == "Image Processing":
 
                                 if face_img is not None:
                                     face_img = cv2.cvtColor(
-                                        face_img, cv2.COLOR_BGR2RGB
+                                        face_img, 
+                                        cv2.COLOR_BGR2RGB
                                     )
-                                    face_img = cv2.resize(
-                                        face_img, (img_size, img_size)
+                                    detected = detect_face(face_img)
+                                if detected is not None:
+                                    detected = cv2.resize(
+                                        detected, 
+                                        (img_size, img_size)
                                     )
-                                    X.append(face_img)
+                                    X.append(detected)
                                     y.append(idx)
 
                         X = np.array(X, dtype=np.float32) / 255.0
@@ -310,19 +340,22 @@ elif menu == "Image Processing":
                             weights='imagenet'
                         )
 
-                        base_model.trainable = False
+                        # Fine-tune: freeze early layers, train top layers
+                        base_model.trainable = True
+                        for layer in base_model.layers[:140]:
+                            layer.trainable = False
 
                         x = base_model.output
                         x = GlobalAveragePooling2D()(x)
-                        x = Dense(128, activation='relu')(x)
-                        x = Dropout(0.6)(x)
+                        x = Dense(128, activation='relu', name='embedding_layer')(x)
+                        x = Dropout(0.5)(x)
                         output = Dense(num_classes, activation='softmax')(x)
 
                         model = Model(
                             inputs=base_model.input, outputs=output
                         )
                         model.compile(
-                            optimizer=Adam(learning_rate=0.001),
+                            optimizer=Adam(learning_rate=0.0001),
                             loss='sparse_categorical_crossentropy',
                             metrics=['accuracy']
                         )
@@ -341,13 +374,14 @@ elif menu == "Image Processing":
 
 [BASE MODEL — MobileNetV2 (pretrained ImageNet)]
   └─ 154 layer konvolusional
-  └─ Bobot: FROZEN (tidak dilatih ulang)
-  └─ Fungsi: Ekstraksi fitur gambar
+  └─ 100 layer awal: FROZEN
+  └─ ~54 layer akhir: TRAINABLE (fine-tuned)
+  └─ Fungsi: Ekstraksi fitur + adaptasi ke dataset wajah
 
 [CUSTOM HEAD — Transfer Learning]
   ├─ GlobalAveragePooling2D
-  ├─ Dense(128, activation='relu')
-  ├─ Dropout(0.7)
+  ├─ Dense(128, activation='relu')  ← embedding_layer
+  ├─ Dropout(0.5)
   └─ Dense({num_classes}, activation='softmax')
 
 [OUTPUT]
@@ -367,6 +401,16 @@ elif menu == "Image Processing":
                             X_train, y_train = X, y
                             validation_data = None
 
+                        # Data augmentation untuk stabilitas dan generalisasi
+                        datagen = ImageDataGenerator(
+                            rotation_range=10,
+                            width_shift_range=0.1,
+                            height_shift_range=0.1,
+                            horizontal_flip=True,
+                            fill_mode='nearest'
+                        )
+                        datagen.fit(X_train)
+
                         progress_bar = st.progress(0)
                         status_text = st.empty()
                         history_log = []
@@ -379,12 +423,16 @@ elif menu == "Image Processing":
                                 acc = logs.get('accuracy', 0)
                                 val_acc = logs.get('val_accuracy', 0)
                                 loss = logs.get('loss', 0)
+                                lr_val = float(tf.keras.backend.get_value(
+                                    model.optimizer.learning_rate
+                                ))
 
                                 status_text.text(
                                     f"Epoch {epoch + 1}/{epochs} — "
                                     f"Loss: {loss:.4f} | "
                                     f"Acc: {acc:.4f} | "
-                                    f"Val Acc: {val_acc:.4f}"
+                                    f"Val Acc: {val_acc:.4f} | "
+                                    f"LR: {lr_val:.2e}"
                                 )
 
                                 history_log.append({
@@ -394,16 +442,42 @@ elif menu == "Image Processing":
                                     "loss": float(loss)
                                 })
 
+                        callbacks_list = [StreamlitCallback()]
+                        if validation_data:
+                            callbacks_list.append(
+                                ReduceLROnPlateau(
+                                    monitor='val_loss', factor=0.5,
+                                    patience=3, min_lr=1e-6, verbose=0
+                                )
+                            )
+
                         model.fit(
-                            X_train, y_train,
+                            datagen.flow(
+                                X_train, y_train,
+                                batch_size=min(16, len(X_train))
+                            ),
                             epochs=epochs,
-                            batch_size=min(16, len(X_train)),
                             validation_data=validation_data,
-                            callbacks=[StreamlitCallback()],
+                            callbacks=callbacks_list,
                             verbose=0
                         )
 
                         model.save(os.path.join(MODEL_PATH, "face_model.h5"))
+
+                        # Simpan embeddings untuk unknown face detection
+                        extractor = Model(
+                            inputs=model.input,
+                            outputs=model.get_layer('embedding_layer').output
+                        )
+                        all_embeddings = extractor.predict(X, verbose=0)
+                        np.save(
+                            os.path.join(MODEL_PATH, "embeddings.npy"),
+                            all_embeddings
+                        )
+                        np.save(
+                            os.path.join(MODEL_PATH, "labels.npy"), y
+                        )
+
                         progress_bar.progress(1.0)
 
                     st.success("✅ Model berhasil dilatih dan disimpan!")
@@ -454,44 +528,50 @@ elif menu == "Image Processing":
 
                         img_size = config["img_size"]
 
-                        face_input = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                        face_input = cv2.cvtColor(
-                            face_input, cv2.COLOR_BGR2RGB
-                        )
+                        face_crop = detect_face(img)
+
+                        if face_crop is None:
+                            st.error("❌ Wajah tidak ditemukan pada gambar")
+                            st.stop()
+
                         face_input = cv2.resize(
-                            face_input, (img_size, img_size)
+                            face_crop,
+                            (img_size, img_size)
                         )
                         face_input = np.expand_dims(
                             face_input.astype(np.float32) / 255.0, axis=0
                         )
 
-                        predictions = model.predict(face_input)[0]
+                        predictions = model.predict(face_input, verbose=0)[0]
                         pred_idx = int(np.argmax(predictions))
-                        confidence = float(predictions[pred_idx]) * 100
-                        pred_name = label_map[str(pred_idx)]
+                        confidence = float(predictions[pred_idx])
+
+                        sorted_pred = np.sort(predictions)
+                        top2 = sorted_pred[-2]
+                        margin = confidence - top2
 
                     st.markdown("### 📊 Hasil Prediksi Deep Learning")
 
-                    if confidence >= 60:
-                        st.success(
-                            f"✅ **{pred_name}** — "
-                            f"Keyakinan: {confidence:.1f}%"
-                        )
+                    CONF_THRESH = 0.40
+                    MARGIN_THRESH = 0.10
+
+                    if confidence < CONF_THRESH or margin < MARGIN_THRESH:
+                        st.error("❌ Wajah tidak dikenali / model tidak yakin")
                     else:
-                        st.warning(
-                            f"⚠️ **{pred_name}** — Keyakinan rendah: "
-                            f"{confidence:.1f}% (wajah mungkin tidak dikenal)"
+                        st.success(
+                            f"✅ **{label_map[str(pred_idx)]}** — "
+                            f"Keyakinan: {confidence:.1%}"
                         )
 
-                    st.markdown("**Distribusi Probabilitas:**")
-                    for i, prob in enumerate(predictions):
-                        name_label = label_map[str(i)]
-                        bar_color = "🟢" if i == pred_idx else "⬜"
-                        st.write(
-                            f"{bar_color} **{name_label}**: "
-                            f"{prob * 100:.1f}%"
-                        )
-                        st.progress(float(prob))
+                        st.markdown("**Distribusi Probabilitas:**")
+                        for i, prob in enumerate(predictions):
+                            name_label = label_map[str(i)]
+                            bar_color = "🟢" if i == pred_idx else "⬜"
+                            st.write(
+                                f"{bar_color} **{name_label}**: "
+                                f"{prob * 100:.1f}%"
+                            )
+                            st.progress(float(prob))
 
         # ==========================================
         # K-MEANS
