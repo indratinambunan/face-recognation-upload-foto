@@ -2,7 +2,7 @@
 
 Aplikasi berbasis **Streamlit** untuk implementasi **Computer Vision** dan **Deep Learning** dalam pengolahan citra digital serta pengenalan wajah (*Face Recognition*).
 
-Project ini dibuat sebagai tugas mata kuliah **Computer Vision** yang mencakup teknik pengolahan citra, segmentasi, dan pengenalan wajah menggunakan **MobileNetV2 (Transfer Learning)**.
+Project ini dibuat sebagai tugas mata kuliah **Computer Vision** yang mencakup implementasi pengolahan citra digital, feature detection, segmentasi, serta pengenalan wajah berbasis Deep Learning menggunakan **MobileNetV2 (Transfer Learning)**.
 
 ---
 
@@ -17,11 +17,12 @@ Project ini dibuat sebagai tugas mata kuliah **Computer Vision** yang mencakup t
 - Resize  
 - Convolution (Sharpen, Sobel X, Sobel Y)  
 - Morphology (Thresholding, Erosion, Dilation, Opening, Closing)  
+- Feature Detection menggunakan Hough Transform  
 - K-Means Clustering  
 
 ### 📌 Tugas 2 — Deep Learning Face Recognition
 - Dataset multi-kelas wajah  
-- Training model CNN  
+- Training model menggunakan arsitektur CNN MobileNetV2  
 - Transfer Learning menggunakan MobileNetV2  
 - Fine Tuning model  
 - Face Prediction  
@@ -44,7 +45,8 @@ Masuk ke folder project:
 cd face-recognation-upload-foto
 ```
 
-Install semua library yang dibutuhkan:
+Install semua library yang dibutuhkan  
+*(pastikan Python sudah terinstall)*
 
 ```bash
 python -m pip install streamlit opencv-python numpy pillow tensorflow scikit-learn
